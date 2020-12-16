@@ -10,7 +10,6 @@ const url = process.env.URL
 const cloudwatch = new AWS.CloudWatch()
 
 exports.handler = async (event) => {
-  // TODO: Use these variables to record metric values
   let endTime
   let requestWasSuccessful
 
@@ -18,12 +17,12 @@ exports.handler = async (event) => {
 
   try {
     await axios.get(url)
-    requestWasSuccessful = true
+    requestWasSuccessful = 1
   } catch (e) {
-    requestWasSuccessful = false
+    requestWasSuccessful = 0
+  } finally {
+    endTime = timeInMs()
   }
-
-  endTime = timeInMs()
 
   await cloudwatch
     .putMetricData({
@@ -37,9 +36,9 @@ exports.handler = async (event) => {
               Name: 'ServiceName',
               Value: serviceName,
             },
-            { Name: 'Url', value: url },
+            { Name: 'Url', Value: url },
           ],
-          Unit: 'True/False', // Unit of a metric
+          Unit: 'Count', // Unit of a metric
           Value: requestWasSuccessful, // Value of a metric to store
         },
       ],
@@ -52,16 +51,16 @@ exports.handler = async (event) => {
       MetricData: [
         // A list of data points to send
         {
-          MetricName: 'Success', // Name of a metric
+          MetricName: 'RequestTime', // Name of a metric
           Dimensions: [
             // A list of key-value pairs that can be used to filter metrics from CloudWatch
             {
               Name: 'ServiceName',
               Value: serviceName,
             },
-            { Name: 'Url', value: url },
+            { Name: 'Url', Value: url },
           ],
-          Unit: 'time', // Unit of a metric
+          Unit: 'Seconds', // Unit of a metric
           Value: endTime - startTime, // Value of a metric to store
         },
       ],
